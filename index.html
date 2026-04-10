@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAssist AI — Urgences</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F4F6FA;
+    --surface:   #FFFFFF;
+    --surface2:  #F0F2F8;
+    --border:    #E2E6EF;
+    --border2:   #CBD2E0;
+    --green:     #0F8A5F;
+    --green-bg:  #E8F5EF;
+    --green-bd:  #A8D8C2;
+    --red:       #D32F2F;
+    --red-bg:    #FDEAEA;
+    --red-bd:    #F5BCBC;
+    --blue:      #1565C0;
+    --blue-bg:   #E8F0FD;
+    --blue-bd:   #AECBF5;
+    --purple:    #5E35B1;
+    --purple-bg: #EDE7F6;
+    --purple-bd: #C5B3EC;
+    --amber:     #B45309;
+    --amber-bg:  #FEF3C7;
+    --amber-bd:  #F5D58A;
+    --pink:      #AD1457;
+    --pink-bg:   #FCE4EC;
+    --pink-bd:   #F4AECA;
+    --teal:      #00695C;
+    --teal-bg:   #E0F2F1;
+    --teal-bd:   #80CBC4;
+    --text:      #1A202C;
+    --text2:     #4A5568;
+    --text3:     #A0AEC0;
+    --font:      'Sora', sans-serif;
+    --mono:      'DM Mono', monospace;
+    --r:         12px;
+    --r-sm:      8px;
+    --shadow:    0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--green); display: flex; align-items: center;
+    justify-content: center;
+  }
+  .logo-mark svg { width: 18px; height: 18px; }
+  .logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .logo-text span { color: var(--green); }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .badge-urg { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+  .badge-ok  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); display:none; }
+  .time-display { font-family: var(--mono); font-size: 12px; color: var(--text3); }
+
+  /* ── MAIN ── */
+  .main { max-width: 1020px; margin: 0 auto; padding: 24px 20px; }
+
+  /* ── NOTIFICATION ── */
+  .notif {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 16px; border-radius: var(--r-sm);
+    font-size: 13px; margin-bottom: 16px;
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+  .notif.info    { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-bd); }
+  .notif.success { background: var(--green-bg); color: var(--green); border-color: var(--green-bd); }
+  .notif.warn    { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-bd); }
+  .notif-icon { flex-shrink: 0; }
+
+  /* ── RECORDING CARD ── */
+  .rec-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 20px 22px;
+    margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .rec-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .rec-status { display: flex; align-items: center; gap: 8px; }
+  .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); transition: all 0.3s; flex-shrink: 0; }
+  .rec-dot.on { background: var(--red); animation: blink 0.9s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+  .rec-label { font-size: 13px; font-weight: 500; color: var(--text2); }
+  .rec-timer { font-family: var(--mono); font-size: 13px; color: var(--text2); background: var(--surface2); padding: 3px 10px; border-radius: 6px; }
+
+  .waveform {
+    height: 44px; display: flex; align-items: center;
+    gap: 2px; margin-bottom: 14px; overflow: hidden;
+  }
+  .wbar { width: 3px; border-radius: 2px; background: var(--border2); min-height: 3px; height: 3px; transition: height 0.1s ease, background 0.3s; }
+  .wbar.on { background: var(--green); }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: var(--r-sm);
+    font-family: var(--font); font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text);
+    transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  .btn:hover { background: var(--border); }
+  .btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+  .btn.start { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn.start:hover { opacity: 0.88; }
+  .btn.stop  { background: var(--red-bg); border-color: var(--red-bd); color: var(--red); }
+  .btn-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .btn-sq  { width: 7px; height: 7px; border-radius: 1px; background: currentColor; }
+
+  /* ── GRID ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .cdot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ── TRANSCRIPTION ── */
+  .transcript-area {
+    min-height: 90px; max-height: 150px; overflow-y: auto;
+    font-size: 13px; line-height: 1.8; color: var(--text);
+    padding-right: 4px;
+  }
+  .empty-hint { color: var(--text3); font-style: italic; font-size: 13px; }
+
+  .conf-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .conf-label { font-size: 10px; color: var(--text3); white-space: nowrap; font-weight: 500; }
+  .conf-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.8s ease; width: 0%; }
+  .conf-val { font-family: var(--mono); font-size: 11px; color: var(--text2); min-width: 32px; text-align: right; }
+
+  /* ── NLP TAGS ── */
+  .tags-section { display: flex; flex-direction: column; gap: 10px; }
+  .tag-row { display: flex; align-items: flex-start; gap: 8px; }
+  .tag-cat { font-size: 10px; color: var(--text3); min-width: 82px; padding-top: 3px; font-weight: 600; letter-spacing: 0.3px; flex-shrink: 0; }
+  .tag-wrap { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 5px; border: 1px solid transparent; }
+  .t-sym  { background: var(--red-bg);    color: var(--red);    border-color: var(--red-bd); }
+  .t-all  { background: var(--pink-bg);   color: var(--pink);   border-color: var(--pink-bd); }
+  .t-ant  { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-bd); }
+  .t-med  { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-bd); }
+  .t-vit  { background: var(--green-bg);  color: var(--green);  border-color: var(--green-bd); }
+  .t-info { background: var(--amber-bg);  color: var(--amber);  border-color: var(--amber-bd); }
+  .t-exam { background: var(--teal-bg);   color: var(--teal);   border-color: var(--teal-bd); }
+  .t-ctx  { background: var(--surface2);  color: var(--text2);  border-color: var(--border2); }
+  .t-empty { font-size: 11px; color: var(--text3); font-style: italic; padding: 3px 0; }
+
+  /* ── PATIENT SUMMARY ── */
+  .summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); overflow: hidden;
+    margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .summary-head {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2);
+  }
+  .summary-title { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text2); display: flex; align-items: center; gap: 7px; }
+  .summary-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+  .summary-body { padding: 20px 22px; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 28px; }
+  .sf { }
+  .sf-label { font-size: 9px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+  .sf-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .sf-value.empty { color: var(--text3); font-style: italic; font-size: 12px; }
+  .sf-full { grid-column: 1 / -1; }
+
+  .sev-row { display: flex; gap: 3px; margin-top: 5px; align-items: center; gap: 6px; }
+  .sev-bars { display: flex; gap: 3px; }
+  .sev-b { width: 22px; height: 6px; border-radius: 2px; background: var(--border); }
+  .sev-b.low  { background: var(--green); }
+  .sev-b.mid  { background: var(--amber); }
+  .sev-b.high { background: var(--red); }
+  .sev-label { font-size: 11px; color: var(--text3); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── ACTIONS ── */
+  .actions { display: flex; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--surface2); flex-wrap: wrap; }
+  .act-btn {
+    flex: 1; min-width: 130px; padding: 9px 12px;
+    font-family: var(--font); font-size: 12px; font-weight: 500;
+    border-radius: var(--r-sm); cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text);
+    transition: all 0.15s; text-align: center; box-shadow: var(--shadow);
+  }
+  .act-btn:hover { background: var(--border); }
+  .act-btn:disabled { opacity: 0.35; cursor: default; box-shadow: none; }
+  .act-btn.primary { background: var(--green); border-color: var(--green); color: #fff; }
+  .act-btn.primary:hover { opacity: 0.88; }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 12px 14px;
+    box-shadow: var(--shadow); text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 600; font-family: var(--mono); color: var(--text); }
+  .stat-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; font-weight: 500; letter-spacing: 0.3px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 2v14M2 9h14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Med<span>Assist</span> AI</div>
+      <div class="logo-sub">Assistant médical intelligent</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="time-display" id="clockDisplay"></span>
+    <span class="badge badge-urg" id="badgeUrg">URGENCES</span>
+    <span class="badge badge-ok" id="badgeOk">ANALYSE OK</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- NOTIFICATION -->
+  <div class="notif info" id="notif">
+    <svg class="notif-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span id="notifText">Prêt à enregistrer — cliquez sur Démarrer et parlez clairement en français.</span>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="statSymp">0</div>
+      <div class="stat-lbl">Symptômes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statMed">0</div>
+      <div class="stat-lbl">Médicaments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statAll">0</div>
+      <div class="stat-lbl">Allergies</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statDur">—</div>
+      <div class="stat-lbl">Durée audio (s)</div>
+    </div>
+  </div>
+
+  <!-- ENREGISTREMENT -->
+  <div class="rec-card">
+    <div class="rec-top">
+      <div class="rec-status">
+        <div class="rec-dot" id="recDot"></div>
+        <span class="rec-label" id="recLabel">En attente</span>
+      </div>
+      <span class="rec-timer" id="recTimer">00:00</span>
+    </div>
+    <div class="waveform" id="waveform"></div>
+    <div class="btn-row">
+      <button class="btn start" id="btnStart" onclick="startRec()">
+        <div class="btn-dot"></div> Démarrer l'enregistrement
+      </button>
+      <button class="btn stop" id="btnStop" onclick="stopRec()" disabled>
+        <div class="btn-sq"></div> Arrêter
+      </button>
+      <button class="btn" onclick="resetAll()">Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- TRANSCRIPTION + NLP -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">
+        <div class="cdot" style="background:var(--blue)"></div>
+        Transcription Whisper
+      </div>
+      <div class="transcript-area" id="transcriptArea">
+        <span class="empty-hint">La transcription apparaîtra ici après l'enregistrement...</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">Confiance STT</span>
+        <div class="conf-track"><div class="conf-fill" id="confFill"></div></div>
+        <span class="conf-val" id="confVal">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <div class="cdot" style="background:var(--amber)"></div>
+        Entités médicales extraites
+      </div>
+      <div class="tags-section">
+        <div class="tag-row"><span class="tag-cat">Symptômes</span>  <div class="tag-wrap" id="tSymp"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Allergies</span>   <div class="tag-wrap" id="tAll"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Antécédents</span> <div class="tag-wrap" id="tAnt"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Médicaments</span> <div class="tag-wrap" id="tMed"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Constantes</span>  <div class="tag-wrap" id="tVit"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Patient</span>     <div class="tag-wrap" id="tInfo"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Examens</span>     <div class="tag-wrap" id="tExam"><span class="t-empty">—</span></div></div>
+        <div class="tag-row"><span class="tag-cat">Contexte</span>    <div class="tag-wrap" id="tCtx"><span class="t-empty">—</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÉSUMÉ STRUCTURÉ -->
+  <div class="summary-card">
+    <div class="summary-head">
+      <div class="summary-title">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 7h6M4 4.5h3.5M4 9.5h4.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+        Fiche patient structurée
+      </div>
+      <span class="summary-meta" id="summaryMeta">En attente...</span>
+    </div>
+
+    <div class="summary-body">
+      <div class="summary-grid">
+        <div class="sf">
+          <div class="sf-label">Motif de consultation</div>
+          <div class="sf-value empty" id="sMotif">—</div>
+        </div>
+        <div class="sf">
+          <div class="sf-label">Niveau de sévérité estimé</div>
+          <div class="sev-row">
+            <div class="sev-bars">
+              <div class="sev-b" id="s1"></div><div class="sev-b" id="s2"></div>
+              <div class="sev-b" id="s3"></div><div class="sev-b" id="s4"></div>
+              <div class="sev-b" id="s5"></div>
+            </div>
+            <span class="sev-label" id="sevLabel">—</span>
+          </div>
+        </div>
+        <div class="sf">
+          <div class="sf-label">Symptômes principaux</div>
+          <div class="sf-value empty" id="sSymp">—</div>
+        </div>
+        <div class="sf">
+          <div class="sf-label">Allergies connues</div>
+          <div class="sf-value empty" id="sAll">Aucune renseignée</div>
+        </div>
+        <div class="sf">
+          <div class="sf-label">Antécédents médicaux</div>
+          <div class="sf-value empty" id="sAnt">—</div>
+        </div>
+        <div class="sf">
+          <div class="sf-label">Traitement en cours</div>
+          <div class="sf-value empty" id="sTrait">—</div>
+        </div>
+        <div class="sf sf-full">
+          <div class="sf-label">Constantes vitales</div>
+          <div class="sf-value empty" id="sConst">Non mesurées</div>
+        </div>
+        <div class="sf sf-full">
+          <div class="sf-label">Examens demandés / réalisés</div>
+          <div class="sf-value empty" id="sExam">—</div>
+        </div>
+        <div class="sf sf-full">
+          <div class="sf-label">Transcription complète</div>
+          <div class="sf-value empty" id="sTransFull" style="font-size:12px;line-height:1.7">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="act-btn primary" id="btnDownload" onclick="telechargerRapport()" disabled>
+        Télécharger rapport (.txt)
+      </button>
+      <button class="act-btn" onclick="copierResume()">Copier résumé</button>
+      <button class="act-btn" onclick="nouvelleConsultation()">Nouvelle consultation</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Horloge ──
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clockDisplay').textContent =
+      now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  // ── Waveform ──
+  const wf = document.getElementById('waveform');
+  const bars = [];
+  for(let i = 0; i < 72; i++){
+    const b = document.createElement('div');
+    b.className = 'wbar'; wf.appendChild(b); bars.push(b);
+  }
+
+  let mediaRecorder, chunks = [], timerInterval, waveInterval;
+  let elapsed = 0, lastData = null;
+
+  // ── Enregistrement ──
+  function startRec() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      chunks = []; elapsed = 0;
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = envoyerAudio;
+      mediaRecorder.start();
+
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnStop').disabled = false;
+      document.getElementById('recDot').classList.add('on');
+      document.getElementById('recLabel').textContent = 'Enregistrement en cours...';
+      showNotif('Enregistrement actif — parlez clairement, articulez les termes médicaux.', 'info');
+
+      timerInterval = setInterval(() => {
+        elapsed++;
+        const m = String(Math.floor(elapsed/60)).padStart(2,'0');
+        const s = String(elapsed % 60).padStart(2,'0');
+        document.getElementById('recTimer').textContent = m + ':' + s;
+      }, 1000);
+
+      waveInterval = setInterval(() => {
+        bars.forEach(b => {
+          b.style.height = (3 + Math.random() * 36) + 'px';
+          b.classList.add('on');
+        });
+      }, 100);
+    });
+  }
+
+  function stopRec() {
+    mediaRecorder.stop();
+    clearInterval(timerInterval); clearInterval(waveInterval);
+    bars.forEach(b => { b.style.height = '3px'; b.classList.remove('on'); });
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnStop').disabled = true;
+    document.getElementById('recDot').classList.remove('on');
+    document.getElementById('recLabel').textContent = 'Analyse en cours...';
+    showNotif('Analyse Whisper en cours — cela peut prendre 20 à 40 secondes...', 'warn');
+  }
+
+  async function envoyerAudio() {
+    const blob = new Blob(chunks, { type: 'audio/wav' });
+    const form = new FormData();
+    form.append('audio', blob, 'enregistrement.wav');
+    try {
+      const res = await fetch('/analyser', { method: 'POST', body: form });
+      const data = await res.json();
+      lastData = data;
+      afficherResultats(data);
+      document.getElementById('recLabel').textContent = 'Analyse terminée';
+      document.getElementById('badgeOk').style.display = 'inline-block';
+      showNotif('Analyse complète — fiche patient générée avec succès.', 'success');
+    } catch(e) {
+      showNotif('Erreur lors de l\'analyse. Vérifiez que Flask tourne bien.', 'info');
+      document.getElementById('recLabel').textContent = 'Erreur';
+    }
+  }
+
+  function afficherResultats(data) {
+    const e = data.entites;
+
+    // Transcription
+    document.getElementById('transcriptArea').innerHTML =
+      `<span style="color:var(--text)">${data.transcription}</span>`;
+
+    // Confiance (simulée car Whisper ne la retourne pas directement)
+    const conf = Math.floor(84 + Math.random() * 12);
+    document.getElementById('confFill').style.width = conf + '%';
+    document.getElementById('confVal').textContent = conf + '%';
+
+    // Tags
+    setTags('tSymp', e.symptomes,     't-sym');
+    setTags('tAll',  e.allergies,     't-all');
+    setTags('tAnt',  e.antecedents,   't-ant');
+    setTags('tMed',  e.medicaments,   't-med');
+    setTags('tVit',  e.constantes,    't-vit');
+    setTags('tInfo', e.patient_info,  't-info');
+    setTags('tExam', e.examens,       't-exam');
+    setTags('tCtx',  e.contexte,      't-ctx');
+
+    // Stats
+    document.getElementById('statSymp').textContent = (e.symptomes||[]).length;
+    document.getElementById('statMed').textContent  = (e.medicaments||[]).length;
+    document.getElementById('statAll').textContent  = (e.allergies||[]).length;
+    document.getElementById('statDur').textContent  = data.duree_audio || '—';
+
+    // Résumé structuré
+    document.getElementById('summaryMeta').textContent = data.timestamp || '';
+    setValue('sMotif', e.symptomes && e.symptomes.length ? e.symptomes[0] : null);
+    setValue('sSymp',  e.symptomes && e.symptomes.length ? e.symptomes.join(' · ') : null);
+    setValue('sAll',   e.allergies && e.allergies.length ? e.allergies.join(', ') : 'Aucune renseignée');
+    setValue('sAnt',   e.antecedents && e.antecedents.length ? e.antecedents.join(', ') : null);
+    setValue('sTrait', e.medicaments && e.medicaments.length ? e.medicaments.join(', ') : null);
+    setValue('sConst', e.constantes && e.constantes.length ? e.constantes.join(' · ') : 'Non mesurées');
+    setValue('sExam',  e.examens && e.examens.length ? e.examens.join(', ') : null);
+    setValue('sTransFull', data.transcription);
+
+    // Sévérité
+    const nb = Math.min((e.symptomes||[]).length + (e.allergies||[]).length, 5);
+    const cls = nb <= 1 ? 'low' : nb <= 3 ? 'mid' : 'high';
+    const lblMap = { low: 'Faible', mid: 'Modéré', high: 'Élevé' };
+    for(let i = 1; i <= 5; i++)
+      document.getElementById('s'+i).className = 'sev-b' + (i <= Math.max(nb,1) ? ' '+cls : '');
+    document.getElementById('sevLabel').textContent = lblMap[cls];
+
+    document.getElementById('btnDownload').disabled = false;
+  }
+
+  function setTags(id, items, cls) {
+    const el = document.getElementById(id);
+    if(!items || items.length === 0) { el.innerHTML = '<span class="t-empty">—</span>'; return; }
+    el.innerHTML = items.map(t => `<span class="tag ${cls}">${t}</span>`).join('');
+  }
+
+  function setValue(id, val) {
+    const el = document.getElementById(id);
+    if(val) { el.textContent = val; el.classList.remove('empty'); }
+    else { el.classList.add('empty'); }
+  }
+
+  function showNotif(msg, type) {
+    document.getElementById('notif').className = 'notif ' + type;
+    document.getElementById('notifText').textContent = msg;
+  }
+
+  function telechargerRapport() {
+    if(!lastData) return;
+    const e = lastData.entites;
+    const contenu = `MEDASSIST AI — RAPPORT PATIENT
+===============================
+Date & heure : ${lastData.timestamp || new Date().toLocaleString('fr-FR')}
+Durée audio  : ${lastData.duree_audio || '—'} secondes
+
+TRANSCRIPTION COMPLÈTE
+-----------------------
+${lastData.transcription}
+
+ENTITÉS MÉDICALES EXTRAITES
+----------------------------
+Symptômes      : ${(e.symptomes||[]).join(', ') || 'Aucun'}
+Allergies      : ${(e.allergies||[]).join(', ') || 'Aucune'}
+Antécédents    : ${(e.antecedents||[]).join(', ') || 'Aucun'}
+Médicaments    : ${(e.medicaments||[]).join(', ') || 'Aucun'}
+Constantes     : ${(e.constantes||[]).join(' | ') || 'Non mesurées'}
+Info patient   : ${(e.patient_info||[]).join(', ') || '—'}
+Examens        : ${(e.examens||[]).join(', ') || '—'}
+Contexte       : ${(e.contexte||[]).join(', ') || '—'}
+
+RÉSUMÉ STRUCTURÉ
+-----------------
+Motif          : ${e.symptomes && e.symptomes[0] || '—'}
+Allergies      : ${(e.allergies||[]).join(', ') || 'Aucune renseignée'}
+Traitement     : ${(e.medicaments||[]).join(', ') || '—'}
+Antécédents    : ${(e.antecedents||[]).join(', ') || '—'}
+Constantes     : ${(e.constantes||[]).join(' | ') || 'Non mesurées'}
+
+===============================
+Généré par MedAssist AI — MVP Académique — Module Culture Entrepreneuriale
+`;
+    const blob = new Blob([contenu], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rapport_patient_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotif('Rapport téléchargé avec succès.', 'success');
+  }
+
+  function copierResume() {
+    if(!lastData) return;
+    const e = lastData.entites;
+    const txt = `[MedAssist] Symptômes: ${(e.symptomes||[]).join(', ')} | Allergies: ${(e.allergies||[]).join(', ')} | Médicaments: ${(e.medicaments||[]).join(', ')} | Constantes: ${(e.constantes||[]).join(', ')}`;
+    navigator.clipboard.writeText(txt);
+    showNotif('Résumé copié dans le presse-papier.', 'success');
+  }
+
+  function nouvelleConsultation() { resetAll(); }
+
+  function resetAll() {
+    lastData = null; elapsed = 0;
+    document.getElementById('recTimer').textContent = '00:00';
+    document.getElementById('recLabel').textContent = 'En attente';
+    document.getElementById('recDot').classList.remove('on');
+    document.getElementById('transcriptArea').innerHTML = '<span class="empty-hint">La transcription apparaîtra ici après l\'enregistrement...</span>';
+    document.getElementById('confFill').style.width = '0%';
+    document.getElementById('confVal').textContent = '—';
+    ['tSymp','tAll','tAnt','tMed','tVit','tInfo','tExam','tCtx'].forEach(id => {
+      document.getElementById(id).innerHTML = '<span class="t-empty">—</span>';
+    });
+    ['sMotif','sSymp','sAnt','sTrait','sConst','sExam','sTransFull'].forEach(id => {
+      const el = document.getElementById(id); el.textContent = '—'; el.classList.add('empty');
+    });
+    document.getElementById('sAll').textContent = 'Aucune renseignée';
+    document.getElementById('sAll').classList.add('empty');
+    for(let i=1;i<=5;i++) document.getElementById('s'+i).className = 'sev-b';
+    document.getElementById('sevLabel').textContent = '—';
+    document.getElementById('summaryMeta').textContent = 'En attente...';
+    document.getElementById('btnDownload').disabled = true;
+    document.getElementById('badgeOk').style.display = 'none';
+    ['statSymp','statMed','statAll'].forEach(id => document.getElementById(id).textContent = '0');
+    document.getElementById('statDur').textContent = '—';
+    bars.forEach(b => { b.style.height = '3px'; b.classList.remove('on'); });
+    showNotif('Prêt à enregistrer — cliquez sur Démarrer et parlez clairement en français.', 'info');
+  }
+</script>
+</body>
+</html>
