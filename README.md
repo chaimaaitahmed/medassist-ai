@@ -155,3 +155,50 @@ modele_stt = whisper.load_model("medium")   # more accurate
 ## License
 
 MIT License
+
+
+## 📊 Configuration de la Base de Données (CRUCIAL)
+
+1. Lancez **XAMPP** et démarrez les modules **Apache** et **MySQL**.
+2. Allez sur `http://localhost/phpmyadmin/`.
+3. Créez une nouvelle base de données nommée : **`medassist_db`**.
+4. Cliquez sur l'onglet **SQL** et exécutez les scripts suivants dans l'ordre :
+
+### Table 1 : Utilisateurs (Médecins et Secrétaires)
+```sql
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    specialty VARCHAR(100),
+    doctor_id VARCHAR(50),
+    password VARCHAR(255) NOT NULL,
+    role ENUM('doctor', 'secretary') DEFAULT 'doctor',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE consultations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    transcription_complete TEXT,
+    confiance_stt DECIMAL(5,2),
+    entites_symptomes TEXT,
+    entites_medicaments TEXT,
+    entites_allergies TEXT,
+    motif_consultation VARCHAR(255),
+    niveau_severite VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE patients (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    age INT,
+    gender VARCHAR(10),
+    cin VARCHAR(20) UNIQUE NOT NULL,
+    status ENUM('Stable', 'Urgent', 'Critique') DEFAULT 'Stable',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Historique des Consultations - MedAssist AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4B49AC;
+            --bg: #F5F7FF;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+            --text-main: #1F1F1F;
+            --text-sub: #6C7383;
+            --success: #28C76F;
+        }
+
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); margin: 0; display: flex; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 240px; background: var(--white); height: 100vh; position: fixed; box-shadow: 10px 0 30px rgba(0,0,0,0.03); padding: 20px; z-index: 100;}
+        .logo { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+       .nav-link { display: flex; align-items: center; gap: 15px; padding: 15px; color: #6C7383; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(75, 73, 172, 0.3); }
+
+        /* --- MAIN CONTENT --- */
+        .content { margin-left: 280px; padding: 30px; width: calc(100% - 320px); }
+        
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+        /* --- TABLE STYLE --- */
+        .card-table { background: var(--white); border-radius: 20px; padding: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border: 1px solid var(--border); overflow: hidden; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 20px; background: #FDFDFF; color: var(--text-sub); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+        td { padding: 20px; border-bottom: 1px solid #F1F5F9; font-size: 14px; color: var(--text-main); }
+        tr:hover { background-color: #FBFBFF; }
+
+        /* --- BADGES --- */
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+        .sev-Faible { background: #D1FAE5; color: #059669; }
+        .sev-Modéré { background: #FEF3C7; color: #B45309; }
+        .sev-Élevé { background: #FEE2E2; color: #DC2626; }
+        .sev-Critique { background: #000; color: #fff; }
+
+        .btn-view { color: var(--primary); text-decoration: none; font-weight: 700; border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; transition: 0.3s; background: none; cursor: pointer; }
+        .btn-view:hover { background: var(--primary); color: white; }
+
+        /* Bouton Télécharger spécial */
+        .btn-download { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-download:hover { background: #3b3a8c; transform: translateY(-1px); }
+
+        .search-bar { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border); width: 300px; font-family: inherit; }
+
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">
+            <div style="width:30px; height:30px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white;">+</div>
+            MedAssist AI
+        </div>
+        <nav>
+             <a href="/urgence" class="nav-link">📊 Dashboard</a>
+            <a href="/patients" class="nav-link">👥 Patients</a>
+            
+             {% if session.get('role') == 'doctor' %}
+            <a href="/historique" class="nav-link active">📅 Historique</a>
+   
+              <a href="/home" class="nav-link">🎙️ Urgence Live</a>
+                  {% endif %}
+                     <a href="/profile" class="nav-link">👤 Mon Profil</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="header-flex">
+            <div>
+                <h2 style="margin:0">Historique des sessions IA</h2>
+                <p style="color:var(--text-sub); margin:5px 0 0;">Retrouvez toutes les analyses générées par Whisper et Ollama.</p>
+            </div>
+             <input type="text" id="cinSearch" class="search-bar" placeholder="Rechercher un patient ou motif...">
+        </div>
+
+        <div class="card-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Heure</th>
+                        <th>Patient</th>
+                        <th>CIN</th>
+                        <th>Motif de consultation</th>
+                        <th>Sévérité IA</th>
+                            {% if session.get('role') == 'doctor' %}
+                        <th>Actions</th>
+                            {% endif %}
+                    </tr>
+                </thead>
+                <tbody id="consultationTableBody">
+                    {% for c in consultations %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ c[5].strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ c[1] }} {{ c[2] }}</td>
+                        <td><code>{{ c[6] }}</code></td>
+                        <td>{{ c[3] or 'Non spécifié' }}</td>
+                        <td><span class="badge sev-{{ c[4] }}">{{ c[4] or 'Faible' }}</span></td>
+                        <td>
+                             {% if session.get('role') == 'doctor' %}
+              
+                            <button onclick="voirDetails({{ c[0] }})" class="btn-view">
+                                📄 Voir Rapport
+                            </button>
+                          
+                  {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 50px; color:var(--text-sub);">
+                            Aucune consultation enregistrée pour le moment.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<!-- Fenêtre Modale pour voir le rapport complet -->
+<div id="reportModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+    <div style="background:white; margin: 5% auto; padding: 30px; border-radius: 20px; width: 70%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #F5F7FF; padding-bottom: 15px; margin-bottom: 20px;">
+            <h2 id="modalTitle" style="margin:0; color:var(--primary);">Rapport Médical IA</h2>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <!-- NOUVEAU BOUTON TÉLÉCHARGER -->
+                <button onclick="telechargerRapportSelectionne()" class="btn-download">
+                    📥 Télécharger .txt
+                </button>
+                <button onclick="fermerModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-sub); padding: 5px;">&times;</button>
+            </div>
+        </div>
+        
+        <div id="modalContent" class="summary-grid">
+            <!-- Rempli par JavaScript -->
+        </div>
+    </div>
+</div>
+
+<script>
+let currentData = null; // Stocke les données du rapport actuellement ouvert
+
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('cinSearch');
+    const tableBody = document.getElementById('consultationTableBody');
+
+    // On vérifie que les éléments existent bien dans la page
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('input', function () {
+            const filter = this.value.toLowerCase().trim();
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                // On récupère tout le texte de la ligne
+                const text = row.textContent.toLowerCase();
+                
+                // Si le texte contient ce qu'on a tapé, on affiche, sinon on cache
+                if (text.includes(filter)) {
+                    row.style.display = ""; // Affiche
+                } else {
+                    row.style.display = "none"; // Cache
+                }
+            });
+        });
+        console.log("Système de recherche activé !");
+    } else {
+        console.error("Erreur : L'ID 'cinSearch' ou 'consultationTableBody' est introuvable.");
+    }
+});
+
+// Gardez vos autres fonctions (voirDetails, fermerModal) en dessous ici...
+// --- 2. FONCTION VOIR RAPPORT (Appel API + Affichage Modal) ---
+async function voirDetails(id) {
+    try {
+        const response = await fetch(`/get_consultation_detail/${id}`);
+        const data = await response.json();
+
+        if (data.erreur) {
+            alert("Erreur: " + data.erreur);
+            return;
+        }
+
+        currentData = data; // Sauvegarde pour le téléchargement
+        
+        const modal = document.getElementById('reportModal');
+        const content = document.getElementById('modalContent');
+        
+        document.getElementById('modalTitle').innerText = `Rapport de ${data.first_name} ${data.last_name}`;
+
+        content.innerHTML = `
+            <div style="grid-column: 1 / -1; display:flex; gap:20px; background:#F8FAFC; padding:15px; border-radius:12px; margin-bottom:20px;">
+                <div><b>CIN:</b> ${data.cin}</div>
+                <div><b>ÂGE:</b> ${data.age} ans</div>
+                <div><b>DATE:</b> ${data.created_at}</div>
+                <div style="margin-left:auto;"><span class="badge sev-${data.niveau_severite}">${data.niveau_severite}</span></div>
+            </div>
+            
+            <div style="grid-column: 1 / -1;">
+                <p style="font-weight:700; color:var(--primary); text-transform:uppercase; font-size:12px; margin-bottom:10px;">Transcription Whisper :</p>
+                <div style="background:#FDFDFF; padding:15px; border-radius:10px; border:1px solid #E2E8F0; font-style:italic; line-height:1.6;">
+                    "${data.transcription_complete}"
+                </div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <p style="font-weight:700; color:var(--text-sub); font-size:12px;">SYMPTÔMES EXTRAITS</p>
+                <p>${data.entites_symptomes || 'Aucun'}</p>
+            </div>
+            
+            <div style="margin-top:20px;">
+                <p style="font-weight:700; color:var(--text-sub); font-size:12px;">MÉDICAMENTS DÉTECTÉS</p>
+                <p>${data.entites_medicaments || 'Aucun'}</p>
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top:20px; padding-top:15px; border-top:1px solid #F1F5F9;">
+                <p style="font-weight:700; color:var(--text-sub); font-size:12px;">MOTIF DE CONSULTATION (OLLAMA)</p>
+                <p style="font-size:16px; font-weight:600;">${data.motif_consultation || 'Non spécifié'}</p>
+            </div>
+        `;
+
+        modal.style.display = 'block';
+    } catch (e) {
+        console.error("Erreur chargement détails", e);
+    }
+}
+
+// --- 3. FONCTION DE TÉLÉCHARGEMENT ---
+function telechargerRapportSelectionne() {
+    if (!currentData) return;
+
+    const d = currentData;
+    let rapportTxt = `==========================================\n`;
+    rapportTxt += `      MEDASSIST AI - RAPPORT MÉDICAL      \n`;
+    rapportTxt += `==========================================\n\n`;
+    rapportTxt += `PATIENT     : ${d.first_name} ${d.last_name}\n`;
+    rapportTxt += `CIN         : ${d.cin}\n`;
+    rapportTxt += `ÂGE         : ${d.age} ans\n`;
+    rapportTxt += `DATE        : ${d.created_at}\n`;
+    rapportTxt += `SÉVÉRITÉ IA : ${d.niveau_severite.toUpperCase()}\n\n`;
+    
+    rapportTxt += `TRANSCRIPTION WHISPER :\n`;
+    rapportTxt += `------------------------\n`;
+    rapportTxt += `"${d.transcription_complete}"\n\n`;
+    
+    rapportTxt += `ANALYSE IA (OLLAMA) :\n`;
+    rapportTxt += `----------------------\n`;
+    rapportTxt += `MOTIF        : ${d.motif_consultation || 'Non spécifié'}\n`;
+    rapportTxt += `SYMPTÔMES    : ${d.entites_symptomes || 'Aucun'}\n`;
+    rapportTxt += `MÉDICAMENTS  : ${d.entites_medicaments || 'Aucun'}\n\n`;
+    
+    rapportTxt += `==========================================\n`;
+    rapportTxt += `Généré automatiquement par MedAssist AI\n`;
+
+    // Création du fichier Blob
+    const blob = new Blob([rapportTxt], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    
+    a.href = url;
+    a.download = `Rapport_${d.last_name}_${d.cin}_${d.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Nettoyage
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+function fermerModal() {
+    document.getElementById('reportModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('reportModal');
+    if (event.target == modal) {
+        fermerModal();
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+:root {
+    --primary: #2563EB; --danger: #EF4444; --bg: #F8FAFC;
+    --text: #1E293B; --border: #E2E8F0; --white: #FFFFFF;
+}
+
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+
+/* Navbar */
+.navbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-weight: 700; color: var(--primary); font-size: 22px; }
+
+/* Cards & Layout */
+.container { padding: 40px; max-width: 1200px; margin: auto; }
+.card { background: var(--white); border-radius: 12px; padding: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+
+/* Buttons */
+.btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: 0.3s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+
+/* Inputs */
+input, select { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }

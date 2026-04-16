@@ -1,0 +1,253 @@
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="7" width="20" height="14" rx="2" stroke="white" stroke-width="2"/>
+                <path d="M16 7V5C16 3.89543 15.1046 3 14 3H10C8.89543 3 8 3.89543 8 5V7" stroke="white" stroke-width="2"/>
+                <path d="M12 11V17M9 14H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <h2 class="auth-title">Med<span>Assist</span> AI</h2>
+        <p class="auth-subtitle">Accès sécurisé pour les professionnels de santé.</p>
+{% if error %}
+<div style="background-color: #FEE2E2; color: #FF4747; padding: 12px; border-radius: 12px; border: 1px solid #FECACA; margin-bottom: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    {{ error }}
+</div>
+{% endif %}
+        <form method="POST" action="/login" class="auth-form">
+            <div class="input-group">
+                <label for="email">Identifiant Professionnel</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" name="email" placeholder="dr.nom@hopital.com" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Mot de passe</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <!-- AJOUT DU RÔLE DANS LE LOGIN -->
+            <div class="input-group">
+                <label for="role">Votre Fonction</label>
+                <div class="input-wrapper">
+                    <select name="role" id="role" required>
+                        <option value="doctor">Docteur / Médecin</option>
+                        <option value="secretary">Secrétaire Médicale</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="auth-options">
+                <label class="remember-me">
+                    <input type="checkbox"> <span>Mémoriser</span>
+                </label>
+                <a href="/forgot_password" class="forgot-link">Mot de passe oublié ?</a>
+            </div>
+
+            <button type="submit" class="btn-login">SE CONNECTER</button>
+        </form>
+
+        <div class="auth-footer">
+            Nouveau sur la plateforme ? <a href="/register">Créer un compte</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+        --primary-violet: #4B49AC;
+        --secondary-violet: #7978E9;
+        --bg-color: #F5F7FF;
+        --text-dark: #1F1F1F;
+        --text-gray: #6C7383;
+        --white: #FFFFFF;
+    }
+
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: var(--bg-color);
+        font-family: 'Manrope', sans-serif;
+    }
+
+    .auth-card {
+        background: var(--white);
+        padding: 45px;
+        border-radius: 25px;
+        box-shadow: 0 10px 30px rgba(75, 73, 172, 0.08);
+        width: 100%;
+        max-width: 440px;
+        text-align: center;
+        border: 1px solid rgba(75, 73, 172, 0.1);
+    }
+
+    .auth-icon {
+        background: linear-gradient(135deg, var(--primary-violet), var(--secondary-violet));
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        box-shadow: 0 8px 15px rgba(75, 73, 172, 0.3);
+    }
+
+    .auth-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        letter-spacing: -1px;
+    }
+
+    .auth-title span {
+        color: var(--primary-violet);
+    }
+
+    .auth-subtitle {
+        color: var(--text-gray);
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 35px;
+    }
+
+    .auth-form {
+        text-align: left;
+    }
+
+    .input-group {
+        margin-bottom: 22px;
+    }
+
+    .input-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 14px 18px;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: #FBFBFF;
+        color: var(--text-dark);
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: var(--primary-violet);
+        background: var(--white);
+        box-shadow: 0 0 0 4px rgba(75, 73, 172, 0.1);
+    }
+
+    .auth-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        font-size: 13px;
+    }
+
+    .remember-me {
+        color: var(--text-gray);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .remember-me input {
+        accent-color: var(--primary-violet);
+        width: 16px;
+        height: 16px;
+    }
+
+    .forgot-link {
+        color: var(--primary-violet);
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(to right, var(--primary-violet), var(--secondary-violet));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 12px rgba(75, 73, 172, 0.2);
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(75, 73, 172, 0.3);
+        opacity: 0.95;
+    }
+
+    .auth-footer {
+        margin-top: 30px;
+        font-size: 14px;
+        color: var(--text-gray);
+        font-weight: 500;
+    }
+
+    .auth-footer a {
+        color: var(--primary-violet);
+        text-decoration: none;
+        font-weight: 700;
+        margin-left: 5px;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+ select {
+        width: 100%;
+        padding: 14px 18px;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 500;
+        background: #FBFBFF;
+        color: #1F1F1F;
+        cursor: pointer;
+        appearance: none; /* Supprime le style par défaut */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234B49AC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 18px;
+    }
+    select:focus {
+        outline: none;
+        border-color: #4B49AC;
+        box-shadow: 0 0 0 4px rgba(75, 73, 172, 0.1);
+    }
+</style>

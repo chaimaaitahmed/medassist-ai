@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MedAssist - Gestion Patients</title>
+    <style>
+        :root { --primary: #4B49AC; --bg: #F5F7FF; --text: #1F1F1F; --border: #E2E8F0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 240px; background: white; height: 100vh; position: fixed; padding: 20px; border-right: 1px solid var(--border); }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); margin-bottom: 40px; }
+       .nav-link { display: flex; align-items: center; gap: 15px; padding: 15px; color: #6C7383; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(75, 73, 172, 0.3); }
+        .content { margin-left: 280px; padding: 40px; width: calc(100% - 320px); }
+        
+        /* Card Formulaire */
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); border: 1px solid var(--border); margin-bottom: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        input, select { padding: 12px; border: 1px solid var(--border); border-radius: 10px; width: 100%; box-sizing: border-box; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 20px; transition: 0.3s; }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Tableau */
+        table { width: 100%; background: white; border-radius: 20px; border-collapse: collapse; overflow: hidden; }
+        th { text-align: left; padding: 20px; background: #F8FAFC; color: #6C7383; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 20px; border-bottom: 1px solid #F1F5F9; font-size: 14px; vertical-align: middle; }
+        
+        /* Badges de Statut */
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .status-Stable { background: #D1FAE5; color: #059669; }
+        .status-Urgent { background: #FEF3C7; color: #B45309; }
+        .status-Critique { background: #FEE2E2; color: #DC2626; }
+        
+        /* Style Date */
+        .date-text { color: #64748B; font-size: 13px; font-weight: 500; }
+        code { background: #F1F5F9; padding: 4px 8px; border-radius: 4px; color: #475569; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <!-- LOGO HARMONISÉ -->
+<div class="logo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px;">
+    <!-- Le carré avec le + médical -->
+    <div style="
+        width: 38px; 
+        height: 38px; 
+        background: #4B49AC; 
+        border-radius: 10px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: white; 
+        font-size: 24px; 
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(75, 73, 172, 0.2);
+    ">+</div>
+    
+    <!-- Le texte MedAssist AI -->
+    <div style="display: flex; flex-direction: column; line-height: 1;">
+        <span style="
+            font-size: 19px; 
+            font-weight: 800; 
+            color: #1F1F1F; 
+            letter-spacing: -0.5px;
+        ">Med<span style="color: #4B49AC;">Assist</span> AI</span>
+        
+        <span style="
+            font-size: 9px; 
+            color: #6C7383; 
+            font-weight: 600; 
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        ">Assistant médical intelligent</span>
+    </div>
+</div>
+        <nav>
+            <a href="/urgence" class="nav-link">📊 Dashboard</a>
+            <a href="/patients" class="nav-link active">👥 Patients</a>
+            {% if session.get('role') == 'doctor' %}
+            <a href="/historique" class="nav-link">📅 Historique</a>
+   
+             
+              <a href="/home" class="nav-link">🎙️ Urgence Live</a>
+                  {% endif %}
+                     <a href="/profile" class="nav-link">👤 Mon Profil</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2>Gestion des Patients <small style="color: #6C7383; font-size: 14px;">(Mode {{ session['role'] }})</small></h2>
+            <div id="clock" style="font-weight: bold; color: var(--primary);"></div>
+        </div>
+ {% if session['role'] == 'secretary' %}
+        <!-- FORMULAIRE D'AJOUT -->
+        <div class="card">
+            <h3 style="margin-top:0; margin-bottom: 20px;">➕ Admission Nouveau Patient</h3>
+            <form action="/api/add_patient" method="POST">
+                <div class="grid">
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">PRÉNOM</label>
+                        <input type="text" name="first_name" placeholder="Prénom" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">NOM</label>
+                        <input type="text" name="last_name" placeholder="Nom" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">CIN / ID</label>
+                        <input type="text" name="cin" placeholder="Ex: AB12345" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">ÂGE</label>
+                        <input type="number" name="age" placeholder="Âge" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">GENRE</label>
+                        <select name="gender">
+                            <option value="Masculin">Masculin</option>
+                            <option value="Féminin">Féminin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: bold; color: #64748B;">STATUT INITIAL</label>
+                        <select name="status">
+                            <option value="Stable">Stable</option>
+                            <option value="Urgent">Urgent</option>
+                            <option value="Critique">Critique</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Enregistrer et Admettre</button>
+            </form>
+        </div>
+{% endif %}
+        <!-- TABLEAU DES PATIENTS -->
+        <div class="card" style="padding:0">
+            <table id="patientsTable">
+                <thead>
+                    <tr>
+                        <th>Nom du Patient</th>
+                        <th>CIN</th>
+                        <th>Âge / Genre</th>
+                        <th>Statut</th>
+                        <th>Date d'admission</th>
+                        <th style="text-align:right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="patientsBody">
+                    <tr><td colspan="6" style="text-align:center; padding: 40px;">Chargement des données...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Affichage de l'heure en direct
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('fr-FR');
+        }, 1000);
+
+        // Fonction pour charger les patients depuis l'API
+        async function loadPatients() {
+            try {
+                const response = await fetch('/api/get_patients');
+                const patients = await response.json();
+                const tbody = document.getElementById('patientsBody');
+                
+                if (patients.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px;">Aucun patient dans la base de données.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = ''; 
+              // 1. On récupère d'abord le rôle une seule fois au début du script
+const roleActuel = "{{ session['role'] }}"; 
+
+patients.forEach(p => {
+    let actionsHtml = "";
+
+    // 2. On utilise des conditions JavaScript pour choisir quoi afficher
+    if (roleActuel === 'doctor') {
+        // Le Docteur voit seulement le micro
+        actionsHtml = `
+            <a href="/select_patient/${p.id}" class="btn-action btn-doctor" style="text-decoration:none;">
+                🎙️ Analyser
+            </a>`;
+    } else if (roleActuel === 'secretary') {
+        // La Secrétaire voit Modifier et Supprimer
+        actionsHtml = `
+           
+            <button onclick="confirmerSuppression(${p.id})" class="btn-icon" title="Supprimer" style="border:none; background:none; cursor:pointer; font-size:18px; color:var(--red); margin-left:10px;">🗑️</button>
+        `;
+    }
+
+    tbody.innerHTML += `
+        <tr>
+            <td><b style="color:var(--primary)">${p.first_name} ${p.last_name}</b></td>
+            <td><code>${p.cin}</code></td>
+            <td>${p.age} ans (${p.gender})</td>
+            <td><span class="badge status-${p.status}">${p.status}</span></td>
+            <td class="date-text">${p.date}</td>
+            <td style="text-align:right">
+                ${actionsHtml}
+            </td>
+        </tr>
+    `;
+});
+            } catch (error) {
+                console.error("Erreur:", error);
+                document.getElementById('patientsBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">Erreur de connexion au serveur Flask.</td></tr>';
+            }
+        }
+
+        window.onload = loadPatients;
+        function confirmerSuppression(id) {
+    if (confirm("⚠️ Êtes-vous sûr de vouloir supprimer ce patient ? Cette action est irréversible.")) {
+        window.location.href = `/delete_patient/${id}`;
+    }
+}
+
+function ouvrirModifier(id) {
+    // Tu peux rediriger vers une page ou ouvrir un modal
+    alert("Ouverture du formulaire de modification pour le patient n°" + id);
+    // window.location.href = `/edit_patient/${id}`;
+}
+    </script>
+</body>
+</html>

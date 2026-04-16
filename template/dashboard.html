@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedAssist AI - Star Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4B49AC; /* Bleu StarAdmin */
+            --secondary: #7978E9;
+            --bg: #F5F7FF;
+            --text: #1F1F1F;
+            --white: #FFFFFF;
+        }
+
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); margin: 0; display: flex; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 240px; background: var(--white); height: 100vh; position: fixed; box-shadow: 10px 0 30px rgba(0,0,0,0.03); padding: 20px; }
+        .logo { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .nav-link { display: flex; align-items: center; gap: 15px; padding: 15px; color: #6C7383; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(75, 73, 172, 0.3); }
+
+        /* --- MAIN CONTENT --- */
+        .content { margin-left: 280px; padding: 30px; width: calc(100% - 320px); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .user-greet h2 { margin: 0; font-size: 28px; }
+        .user-greet p { color: #6C7383; margin: 5px 0 0 0; }
+
+        /* --- CARDS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card-stat { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .card-stat h3 { margin: 0; font-size: 24px; color: var(--text); }
+        .card-stat p { margin: 5px 0 0 0; color: #6C7383; font-size: 14px; }
+        .trend { font-size: 12px; margin-top: 10px; font-weight: 600; }
+        .trend.up { color: #28C76F; }
+
+        /* --- CHARTS --- */
+        .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card-chart { background: var(--white); padding: 25px; border-radius: 20px; }
+
+        /* --- BOUTON URGENCE --- */
+        .btn-emergency {
+            background: linear-gradient(to right, #4B49AC, #7978E9);
+            color: white; padding: 15px 30px; border-radius: 12px;
+            text-decoration: none; font-weight: 600; display: inline-flex;
+            align-items: center; gap: 10px; margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(75, 73, 172, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <!-- LOGO HARMONISÉ -->
+<div class="logo" style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px;">
+    <!-- Le carré avec le + médical -->
+    <div style="
+        width: 38px; 
+        height: 38px; 
+        background: #4B49AC; 
+        border-radius: 10px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        color: white; 
+        font-size: 24px; 
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(75, 73, 172, 0.2);
+    ">+</div>
+    
+    <!-- Le texte MedAssist AI -->
+    <div style="display: flex; flex-direction: column; line-height: 1;">
+        <span style="
+            font-size: 19px; 
+            font-weight: 800; 
+            color: #1F1F1F; 
+            letter-spacing: -0.5px;
+        ">Med<span style="color: #4B49AC;">Assist</span> AI</span>
+        
+        <span style="
+            font-size: 9px; 
+            color: #6C7383; 
+            font-weight: 600; 
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        ">Assistant médical intelligent</span>
+    </div>
+</div>
+        <nav>
+            <a href="/urgence" class="nav-link active">📊 Dashboard</a>
+            <a href="/patients" class="nav-link">👥 Patients</a>
+            {% if session.get('role') == 'doctor' %}
+            <a href="/historique" class="nav-link">📅 Historique</a>
+            <!-- <a href="/stats" class="nav-link">📈 Statistiques</a> -->
+              
+              <a href="/home" class="nav-link">🎙️ Urgence Live</a>
+                  {% endif %}
+            <a href="/profile" class="nav-link">👤 Mon Profil</a>
+            <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
+            <a href="/logout" class="nav-link" style="color:#FF4747;">🚪 Déconnexion</a>
+        </nav>
+    </div>
+
+    <div class="content">
+        <div class="header">
+    <div class="user-greet">
+        <h2>
+            Bonjour, 
+            {% if session.get('role') == 'doctor' %}
+                Dr.
+            {% else %}
+                Mr.
+            {% endif %}
+            {{ session.get('user_name', 'Utilisateur') }}
+        </h2>
+        <p>Voici le résumé des performances de votre service cette semaine.</p>
+    </div>
+
+    <!-- Optionnel : On cache le bouton "Urgence Live" pour la secrétaire 
+         car elle ne fait pas de consultations médicales -->
+    {% if session.get('role') == 'doctor' %}
+    <a href="/home" class="btn-emergency">
+        🎙️ LANCER URGENCE LIVE
+    </a>
+    {% endif %}
+</div>
+
+        <!-- KPI Row -->
+        <div class="stats-grid">
+            <div class="card-stat">
+                <p>Patients aujourd'hui</p>
+                <h3>{{ stats.total_patients }}</h3>
+                <div class="trend up">↑ 10% vs hier</div>
+            </div>
+            <div class="card-stat">
+                <p>Temps de triage moy.</p>
+                <h3>{{ stats.avg_time }}</h3>
+                <div class="trend up" style="color:var(--primary)">Stable</div>
+            </div>
+            <div class="card-stat">
+                <p>Alertes Critiques</p>
+                <h3 style="color:#FF4747;">{{ stats.alerts }}</h3>
+                <div class="trend" style="color:#FF4747;">Action requise</div>
+            </div>
+            <div class="card-stat">
+                <p>Confiance IA</p>
+                <h3>{{ stats.ai_accuracy }}</h3>
+                <div class="trend up">↑ 0.5%</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <div class="card-chart">
+                <h4 style="margin-top:0;">Évolution des Pathologies (7 jours)</h4>
+                <canvas id="lineChart" height="120"></canvas>
+            </div>
+            <div class="card-chart">
+                <h4 style="margin-top:0;">Répartition des Cas</h4>
+                <canvas id="doughnutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Graphique Linéaire (Analyse de tendance)
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                datasets: [{
+                    label: 'Admissions',
+                    data: [12, 19, 15, 25, 22, 30, 28],
+                    borderColor: '#4B49AC',
+                    backgroundColor: 'rgba(75, 73, 172, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Graphique Doughnut (Data Analysis)
+        const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cardio', 'Trauma', 'Respi', 'Autres'],
+                datasets: [{
+                    data: [35, 25, 20, 20],
+                    backgroundColor: ['#4B49AC', '#FFC100', '#248AFD', '#FF4747'],
+                    borderWidth: 0
+                }]
+            },
+            options: { cutout: '70%' }
+        });
+    </script>
+</body>
+</html>

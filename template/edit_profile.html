@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier Profil - MedAssist AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4B49AC; --bg: #F5F7FF; --white: #FFFFFF; --border: #E2E8F0; }
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .edit-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+        }
+
+        h2 { color: var(--primary); margin-bottom: 25px; text-align: center; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 700; color: #6C7383; margin-bottom: 8px; text-transform: uppercase; }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            background: #F8F9FA;
+            transition: 0.3s;
+        }
+
+        input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(75, 73, 172, 0.1); }
+
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-save:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #6C7383; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="edit-card">
+        <h2>Modifier mes informations</h2>
+        
+        <form action="/update_profile" method="POST">
+            <div class="form-group">
+                <label>Nom complet</label>
+                <input type="text" name="name" value="{{ user[0] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Spécialité</label>
+                <input type="text" name="specialty" value="{{ user[2] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Identifiant Pro (RPPS)</label>
+                <input type="text" name="doctor_id" value="{{ user[3] }}" required>
+            </div>
+
+            <p style="font-size: 12px; color: #999; margin-bottom: 20px;">
+                Note : L'adresse email professionnelle ne peut pas être modifiée pour des raisons de sécurité.
+            </p>
+
+            <button type="submit" class="btn-save">Enregistrer les modifications</button>
+            <a href="/profile" class="back-link">Annuler et retourner au profil</a>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - MedAssist AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4B49AC;
+            --secondary: #7978E9;
+            --bg: #F5F7FF;
+            --text: #1F1F1F;
+            --text-light: #6C7383;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+        }
+
+        body { font-family: 'Manrope', sans-serif; background: var(--bg); margin: 0; display: flex; }
+
+        /* --- SIDEBAR (Identique au Dashboard) --- */
+        .sidebar { width: 240px; background: var(--white); height: 100vh; position: fixed; box-shadow: 10px 0 30px rgba(0,0,0,0.03); padding: 20px; z-index: 100;}
+        .logo { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+ .nav-link { display: flex; align-items: center; gap: 15px; padding: 15px; color: #6C7383; text-decoration: none; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(75, 73, 172, 0.3); }
+
+        /* --- MAIN CONTENT --- */
+        .content { margin-left: 280px; padding: 30px; width: calc(100% - 320px); }
+        
+        /* --- PROFILE HEADER --- */
+        .profile-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(75, 73, 172, 0.2);
+        }
+
+        .profile-info h2 { margin: 0; font-size: 28px; color: var(--text); }
+        .profile-info p { margin: 5px 0 0; color: var(--primary); font-weight: 600; font-size: 18px; }
+        .badge-verified {
+            display: inline-block;
+            background: #D1FAE5;
+            color: #059669;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        /* --- DETAILS GRID --- */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .detail-item {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* --- BUTTONS --- */
+        .btn-edit {
+            background: var(--primary);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .btn-edit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(75, 73, 172, 0.3); }
+
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="logo">
+            <div style="width:30px; height:30px; background:var(--primary); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white;">+</div>
+            MedAssist AI
+        </div>
+        <nav>
+           <a href="/urgence" class="nav-link">📊 Dashboard</a>
+            <a href="/patients" class="nav-link">👥 Patients</a>
+            
+             {% if session.get('role') == 'doctor' %}
+            <a href="/historique" class="nav-link">📅 Historique</a>
+   
+              <a href="/home" class="nav-link">🎙️ Urgence Live</a>
+                  {% endif %}
+                     <a href="/profile" class="nav-link active">👤 Mon Profil</a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+        <h1 style="margin-bottom: 30px;">Paramètres du compte</h1>
+
+        <!-- HEADER CARD -->
+        <div class="profile-card">
+            <div class="avatar-circle">
+                {{ user[0][0] }} <!-- Prend la première lettre du nom -->
+            </div>
+            <div class="profile-info">
+                <h2>Dr. {{ user[0] }}</h2>
+                <p>{{ user[2] }}</p> <!-- Spécialité -->
+                <span class="badge-verified">✓ Médecin Vérifié</span>
+            </div>
+        </div>
+
+        <!-- DETAILS CARD -->
+        <div class="details-grid">
+            <div class="detail-item">
+                <span class="detail-label">Nom Complet</span>
+                <span class="detail-value">{{ user[0] }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Adresse Email</span>
+                <span class="detail-value">{{ user[1] }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Identifiant Professionnel (RPPS)</span>
+                <span class="detail-value">#{{ user[3] }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Établissement</span>
+                <span class="detail-value">Centre Hospitalier Universitaire</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="edit_profile" class="btn-edit">Modifier mes informations</a>
+            <a href="/urgence" style="margin-left: 15px; color: var(--text-light); text-decoration: none; font-weight: 600;">Retour au Dashboard</a>
+        </div>
+    </div>
+
+</body>
+</html>
